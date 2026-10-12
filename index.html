@@ -2,20 +2,21 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>くらべてみよう</title>
+<title>ながさを くらべよう</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@700;900&display=swap">
 <style>
-/* レイアウト：上に質問文、下に大きな選択肢（2択または3択）。白地のみ・装飾なし。 */
+/* レイアウト：上に質問文、下に横長の選択肢を上から順に並べる（左はしをそろえて長さを比べる）。白地のみ。 */
 :root {
   --bg: #ffffff;        /* 背景（白） */
   --ink: #222831;       /* 文字 */
   --sub: #8a94a0;       /* 先生向けの小さな文字 */
   --line: #d3d9e0;      /* 選択肢のふち */
   --press: #eef2f6;     /* 押した瞬間の色 */
-  --key: #d6450f;       /* 質問文のキーワード（おおきい 等） */
+  --done: #fff4f0;      /* 上級：タッチできた選択肢の色 */
+  --key: #d6450f;       /* 質問文のキーワード */
   --maru: #e03131;      /* 〇 の色 */
   --batsu: #1f5fbf;     /* × の色 */
   --font: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "BIZ UDPGothic", "Hiragino Sans", "Meiryo", sans-serif;
@@ -32,16 +33,16 @@ body {
 button { font: inherit; color: inherit; }
 #app {
   height: 100%; box-sizing: border-box;
-  display: flex; flex-direction: column; gap: 2.5vmin;
+  display: flex; flex-direction: column; gap: 2vmin;
   padding-inline: max(16px, 3vmin); padding-block: 2vmin 3vmin;
 }
 
-/* ---------- 上の段：もどる・質問文・のこり ---------- */
+/* ---------- 上の段：メニュー・のこり・質問文 ---------- */
 #top { display: flex; flex-direction: column; gap: .8vmin; }
 #bar { display: flex; justify-content: space-between; align-items: center; gap: 2vmin; }
 #question {
   margin: 0; text-align: center; font-weight: 900; line-height: 1.2;
-  font-size: clamp(30px, 7.5vmin, 80px); letter-spacing: .04em;
+  font-size: clamp(30px, 7vmin, 76px); letter-spacing: .04em;
   text-wrap: balance;
 }
 #question .key { color: var(--key); }
@@ -62,20 +63,18 @@ button { font: inherit; color: inherit; }
 #back.holding::after { transform: scaleX(1); transition: transform var(--hold) linear; }
 #back span { position: relative; z-index: 1; }
 
-/* ---------- 選択肢 ---------- */
+/* ---------- 選択肢（横長の行を上から並べる） ---------- */
 #choices {
   flex: 1; min-height: 0;
-  display: grid; grid-template-columns: repeat(var(--n), 1fr); gap: 3vmin;
-}
-@media (orientation: portrait) {
-  #choices { grid-template-columns: 1fr; grid-template-rows: repeat(var(--n), 1fr); }
+  display: grid; grid-template-rows: repeat(var(--n), 1fr); gap: 2vmin;
 }
 .choice {
-  position: relative; min-width: 0; min-height: 0; margin: 0; padding: 0;
+  position: relative; min-width: 0; min-height: 0; margin: 0;
   container-type: size;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: flex-start;
+  padding: 0 0 0 4cqw;
   background: var(--bg);
-  border: max(4px, .7vmin) solid var(--line); border-radius: 4vmin;
+  border: max(4px, .6vmin) solid var(--line); border-radius: 3vmin;
   cursor: pointer; overflow: hidden;
   transition: background-color .1s;
 }
@@ -83,40 +82,70 @@ button { font: inherit; color: inherit; }
 .choice:focus-visible { outline: 6px solid var(--key); outline-offset: 4px; }
 .choice.is-correct { border-color: var(--maru); }
 .choice.is-wrong   { border-color: var(--batsu); }
-.choice.align-start { justify-content: flex-start; padding-left: 6cqw; }
+.choice.is-done    { background: var(--done); border-color: var(--maru); }
 
-/* 絵文字（大きさは --s ＝ 0〜1 で指定） */
-.emoji { font-size: calc(var(--s) * 78cqmin); line-height: 1; }
-
-/* 画像に差し替えたとき（--s で大きさ） */
-.pic {
-  width: calc(var(--s) * 92cqw); height: calc(var(--s) * 92cqh);
-  object-fit: contain; pointer-events: none; -webkit-user-drag: none;
+/* 上級：タッチした じゅんばん */
+.badge {
+  position: absolute; right: 2.5cqw; top: 50%; transform: translateY(-50%);
+  width: min(60cqh, 10cqw); aspect-ratio: 1; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--maru); color: #fff; font-weight: 900; font-size: min(36cqh, 6cqw); line-height: 1;
 }
 
-/* おおい・すくない：同じ大きさの絵文字を並べる */
-.many {
-  width: 92%; display: flex; flex-wrap: wrap; justify-content: center; align-content: center;
-  gap: 2cqmin 4cqmin; font-size: var(--fs); line-height: 1;
-}
+/* ---------- くらべる物（横の長さ = --len × 80cqw） ---------- */
+.obj { width: calc(var(--len) * 80cqw); flex: none; }
+.pic { height: auto; max-height: 80cqh; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
 
-/* ながい・みじかい：えんぴつ */
-.pencil { width: calc(var(--len) * 86cqw); height: 15cqmin; display: flex; }
-.pencil .eraser { width: 8cqmin; background: #f4a6b8; border-radius: 3cqmin 0 0 3cqmin; flex: none; }
-.pencil .band   { width: 3cqmin; background: #b8bec6; flex: none; }
+/* えんぴつ */
+.pencil { height: 42cqh; display: flex; }
+.pencil .eraser { width: 16cqh; background: #f4a6b8; border-radius: 8cqh 0 0 8cqh; flex: none; }
+.pencil .band   { width: 6cqh; background: #b8bec6; flex: none; }
 .pencil .body   { flex: 1; background: var(--c); }
 .pencil .tip {
-  width: 13cqmin; flex: none;
+  width: 28cqh; flex: none;
   background: linear-gradient(to right, #f1d3a6 72%, #3a3a3a 72%);
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
-/* ひろい・せまい：同じ大きさの人と、広さのちがう場所 */
-.area {
-  width: calc(var(--w) * 90cqw); height: calc(var(--h) * 90cqh);
-  background: var(--c); border-radius: 3cqmin;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 15cqmin; line-height: 1;
+/* はし（2本） */
+.hashi { display: flex; flex-direction: column; gap: 9cqh; }
+.hashi span {
+  display: block; height: 14cqh;
+  background: linear-gradient(to right, var(--c) 0 22%, #c99a6b 22% 100%);
+  clip-path: polygon(0 0, 100% 30%, 100% 70%, 0 100%);
+}
+
+/* ひも */
+.himo {
+  height: 18cqh; border-radius: 9cqh;
+  background: repeating-linear-gradient(60deg, var(--c) 0 4cqh, #ffffff80 4cqh 5.5cqh);
+  background-color: var(--c);
+}
+
+/* でんしゃ */
+.densha { position: relative; height: 62cqh; }
+.densha .car {
+  position: absolute; left: 0; right: 0; top: 0; bottom: 12cqh;
+  border-radius: 4cqh 20cqh 4cqh 4cqh;
+  background:
+    linear-gradient(#d8eefc, #d8eefc) right 4cqh top 8cqh / 13cqh 17cqh no-repeat,
+    linear-gradient(#f2c94c, #f2c94c) left 0 top 32cqh / 100% 5cqh no-repeat,
+    var(--c);
+}
+.densha .car::before {
+  content: ""; position: absolute; left: 5cqh; right: 22cqh; top: 8cqh; height: 17cqh;
+  background: repeating-linear-gradient(to right, #d8eefc 0 13cqh, transparent 13cqh 18cqh);
+}
+.densha .wheels {
+  position: absolute; left: 6cqh; right: 12cqh; bottom: 0; height: 13cqh;
+  background: radial-gradient(circle, #3a3a3a 0 5.6cqh, transparent 6cqh) left center / 26cqh 13cqh;
+  background-repeat: space no-repeat;
+}
+
+/* ストロー */
+.straw {
+  height: 16cqh; border-radius: 4cqh; box-sizing: border-box; border: 2px solid var(--c);
+  background: repeating-linear-gradient(to right, var(--c) 0 8cqh, #ffffff 8cqh 16cqh);
 }
 
 /* ---------- 〇 × フィードバック ---------- */
@@ -155,7 +184,7 @@ button { font: inherit; color: inherit; }
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 5vmin; padding-inline: 16px; text-align: center;
 }
-.screen h1 { margin: 0; font-size: clamp(40px, 10vmin, 110px); font-weight: 900; letter-spacing: .08em; }
+.screen h1 { margin: 0; font-size: clamp(36px, 9vmin, 100px); font-weight: 900; letter-spacing: .08em; }
 .levels { display: flex; flex-wrap: wrap; justify-content: center; gap: 3vmin; }
 .level {
   display: flex; flex-direction: column; align-items: center; gap: 1.2vmin;
@@ -202,7 +231,7 @@ button { font: inherit; color: inherit; }
 <div id="cooldown" hidden></div>
 
 <div id="start" class="screen">
-  <h1>くらべてみよう</h1>
+  <h1>ながさを くらべよう</h1>
   <div class="levels" id="levels"></div>
   <p class="hint">せんせいが えらんでください</p>
 </div>
@@ -221,7 +250,7 @@ button { font: inherit; color: inherit; }
    せってい（先生が変えられる数値）
    ========================================================= */
 const CONFIG = {
-  questionsPerGame: 30,  // 1回のもんだい数（正解した数で数える）
+  questionsPerGame: 20,  // 1回のもんだい数（正解した数で数える）
   correctWaitMs: 2500,   // 正解後、次の問題へ進むまで
   cooldownMs: 5000,      // 不正解後のクールタイム（操作できない時間）
   batsuFadeMs: 1500,     // × を大きく見せる時間（その後うすくなる）
@@ -231,32 +260,45 @@ const CONFIG = {
 
 /* =========================================================
    なんいど（難易度）
-   choices    … 選択肢の数（2 または 3）
-   concepts   … 出す問題の種類（下の CONCEPTS の id）
-   leftRate   … 正解をいちばん左に置く割合（null ならランダム）
+   choices  … 選択肢の数
+   mode     … 'pick'（1つえらぶ）または 'order'（ながい じゅんに タッチ）
+   lengths  … 長さのセット（1 = いちばん長い）。この中から毎回1つえらぶ
+   topRate  … 正解をいちばん上に置く割合（null ならランダム）
    ========================================================= */
 const LEVELS = {
-  easy:   { name: '初級', ruby: 'しょきゅう',   stars: '★',   note: '2たく・おもさ なし', choices: 2,
-            concepts: ['size', 'length', 'width', 'amount'], leftRate: 0.7 },
-  normal: { name: '中級', ruby: 'ちゅうきゅう', stars: '★★',  note: '2たく',              choices: 2,
-            concepts: ['size', 'length', 'width', 'amount', 'weight'], leftRate: null },
-  hard:   { name: '上級', ruby: 'じょうきゅう', stars: '★★★', note: '3たく',              choices: 3,
-            concepts: ['size', 'length', 'width', 'amount', 'weight'], leftRate: null }
+  easy: {
+    name: '初級', ruby: 'しょきゅう', stars: '★', note: '3たく', choices: 3, mode: 'pick', topRate: 0.7,
+    lengths: [[1, 0.62, 0.3], [0.95, 0.6, 0.28], [1, 0.66, 0.34]]
+  },
+  normal: {
+    name: '中級', ruby: 'ちゅうきゅう', stars: '★★', note: '4たく', choices: 4, mode: 'pick', topRate: null,
+    lengths: [[1, 0.78, 0.56, 0.34], [0.95, 0.75, 0.55, 0.35], [1, 0.8, 0.6, 0.38]]
+  },
+  hard: {
+    name: '上級', ruby: 'じょうきゅう', stars: '★★★', note: 'ながい じゅんに ならべる', choices: 4, mode: 'order', topRate: null,
+    lengths: [[1, 0.78, 0.56, 0.34], [0.95, 0.75, 0.55, 0.35], [1, 0.8, 0.6, 0.38]]
+  }
 };
 
 /* =========================================================
-   選択肢の「見た目」の書き方
-   ---------------------------------------------------------
-   どの選択肢も、次のどれかのオブジェクトで表します。
-   画像に差し替えるときは image を足すだけでOK
-   （image があれば絵文字より優先して表示されます）。
-
-   { type:'emoji',  emoji:'🍎', size:0.9 }          … 1つの絵（size 0〜1）
-   { type:'many',   emoji:'🍎', count:6 }           … 同じ絵を count 個
-   { type:'pencil', length:0.9, color:'#f2c94c' }   … えんぴつ（length 0〜1）
-   { type:'area',   w:0.9, h:0.8, color:'#bfe3b4', emoji:'🧒' } … 場所の広さ
-   { image:'img/apple.png', size:0.9, alt:'りんご' } … 画像（size 0〜1）
+   くらべる物
+   draw(el, color) で物の形を作ります。長さは自動で変わります。
+   画像に差し替えるときは、draw の代わりに image を書きます。
+     例：{ id: 'pencil', name: 'えんぴつ', image: 'img/pencil.png' }
+     （画像は横向きで、左はしから右はしまで物が写っているものにしてください）
    ========================================================= */
+const OBJECTS = [
+  { id: 'pencil', name: 'えんぴつ', colors: ['#f2c94c', '#6fb3e8', '#7cc576', '#f28c8c'],
+    draw(el) { el.innerHTML = '<span class="eraser"></span><span class="band"></span><span class="body"></span><span class="tip"></span>'; } },
+  { id: 'hashi', name: 'はし', colors: ['#c0392b', '#2c3e50', '#8e5a2b'],
+    draw(el) { el.innerHTML = '<span></span><span></span>'; } },
+  { id: 'himo', name: 'ひも', colors: ['#e2a541', '#d9534f', '#5b8fd6'],
+    draw() {} },
+  { id: 'densha', name: 'でんしゃ', colors: ['#2e8b57', '#d9503f', '#3b7dd8'],
+    draw(el) { el.innerHTML = '<span class="car"></span><span class="wheels"></span>'; } },
+  { id: 'straw', name: 'ストロー', colors: ['#f28c8c', '#6fb3e8', '#7cc576'],
+    draw() {} }
+];
 
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 const shuffle = arr => {
@@ -267,65 +309,6 @@ const shuffle = arr => {
   }
   return a;
 };
-
-/* =========================================================
-   問題のデータ
-   items(n) は n こ（2 または 3）の絵を返します。
-   ならびは「words[0] がいちばん強い → words[1] がいちばん強い」の順。
-   例：words:['おおきい','ちいさい'] なら [大きい, (中くらい), 小さい]
-   ========================================================= */
-const CONCEPTS = [
-  {
-    id: 'size',
-    words: ['おおきい', 'ちいさい'],
-    items(n) {
-      const e = pick(['🍎', '🐶', '⚽', '🍙', '🚗', '🐟', '🌻']);
-      const sizes = n === 3 ? [0.9, 0.58, 0.28] : [0.9, 0.35];
-      return sizes.map(size => ({ type: 'emoji', emoji: e, size }));
-    }
-  },
-  {
-    id: 'length',
-    words: ['ながい', 'みじかい'],
-    items(n) {
-      const c = pick(['#f2c94c', '#6fb3e8', '#7cc576', '#f28c8c']);
-      const lens = n === 3 ? [0.95, 0.68, 0.42] : [0.95, 0.42];
-      return lens.map(length => ({ type: 'pencil', length, color: c }));
-    },
-    alignStart: true   // 左はしをそろえて比べやすくする
-  },
-  {
-    id: 'width',
-    words: ['ひろい', 'せまい'],
-    items(n) {
-      const [color, emoji] = pick([['#bfe3b4', '🧒'], ['#bfe0f5', '🐟'], ['#f3dfc1', '🐱']]);
-      const boxes = n === 3 ? [[0.92, 0.85], [0.62, 0.6], [0.32, 0.36]] : [[0.92, 0.85], [0.32, 0.38]];
-      return boxes.map(([w, h]) => ({ type: 'area', w, h, color, emoji }));
-    }
-  },
-  {
-    id: 'amount',
-    words: ['おおい', 'すくない'],
-    items(n) {
-      const e = pick(['🍎', '🍓', '⭐', '🐟', '🍬', '🌷']);
-      const counts = n === 3
-        ? pick([[9, 5, 2], [8, 4, 1], [7, 4, 2], [9, 6, 3]])
-        : pick([[8, 2], [7, 1], [6, 2], [9, 3]]);
-      return counts.map(count => ({ type: 'many', emoji: e, count }));
-    }
-  },
-  {
-    id: 'weight',
-    words: ['おもい', 'かるい'],
-    items(n) {
-      const set = n === 3
-        ? pick([['🐘', '🐶', '🐭'], ['🚗', '🚲', '🪶'], ['🍉', '🍎', '🍓'], ['🐻', '🐱', '🐦'], ['🪨', '🍙', '🪶']])
-        : pick([['🐘', '🐭'], ['🚗', '🚲'], ['🍉', '🍓'], ['🪨', '🪶'], ['🐻', '🐦']]);
-      return set.map(emoji => ({ type: 'emoji', emoji, size: 0.72 }));
-    }
-  }
-];
-const conceptById = id => CONCEPTS.find(c => c.id === id);
 
 /* =========================================================
    画面の要素と状態
@@ -341,8 +324,8 @@ const cooldownEl = $('cooldown');
 let level = null;        // いまの難易度
 let current = null;      // いまの問題
 let solved = 0;          // 正解した数
-let bag = [];            // 問題の種類が かたよらないための袋
-let lastConceptId = null;
+let bag = [];            // 物が かたよらないための袋
+let lastObjectId = null;
 let locked = false;
 const timers = new Set();
 function later(fn, ms) {
@@ -351,101 +334,93 @@ function later(fn, ms) {
 }
 function clearTimers() { timers.forEach(clearTimeout); timers.clear(); }
 
-/* ---------- 問題の種類をえらぶ（同じ種類が続かない・かたよらない） ---------- */
-function nextConcept() {
-  if (bag.length === 0) bag = shuffle(level.concepts);
-  if (bag[0] === lastConceptId && bag.length > 1) bag.push(bag.shift());
-  const id = bag.shift();
-  lastConceptId = id;
-  return conceptById(id);
+/* ---------- 物をえらぶ（同じ物が続かない・かたよらない） ---------- */
+function nextObject() {
+  if (bag.length === 0) bag = shuffle(OBJECTS);
+  if (bag[0].id === lastObjectId && bag.length > 1) bag.push(bag.shift());
+  const obj = bag.shift();
+  lastObjectId = obj.id;
+  return obj;
 }
 
 /* ---------- 問題を作る ---------- */
 function makeQuestion() {
-  const concept = nextConcept();
-  const n = level.choices;
-  const items = concept.items(n);
-  const askIndex = Math.random() < 0.5 ? 0 : 1;        // どちらの言葉で聞くか
-  const answer = askIndex === 0 ? items[0] : items[n - 1];
-  const others = items.filter(it => it !== answer);
+  const obj = nextObject();
+  const color = pick(obj.colors);
+  const lens = pick(level.lengths);                 // 長い → 短い の順
+  const items = lens.map(len => ({ len }));
+  const n = items.length;
 
-  // 正解の位置を決める
+  if (level.mode === 'order') {
+    const shown = shuffle(items);
+    // ながい じゅんに タッチする番号の並び
+    const order = shown.map((it, i) => i).sort((a, b) => shown[b].len - shown[a].len);
+    return { mode: 'order', obj, color, shown, order, done: [] };
+  }
+
+  const word = Math.random() < 0.5 ? 'ながい' : 'みじかい';
+  const answer = word === 'ながい' ? items[0] : items[n - 1];
+  const others = shuffle(items.filter(it => it !== answer));
   let pos;
-  if (level.leftRate != null) {
-    pos = Math.random() < level.leftRate ? 0 : 1 + Math.floor(Math.random() * (n - 1));
+  if (level.topRate != null) {
+    pos = Math.random() < level.topRate ? 0 : 1 + Math.floor(Math.random() * (n - 1));
   } else {
     pos = Math.floor(Math.random() * n);
   }
-  const shown = shuffle(others);
-  shown.splice(pos, 0, answer);
-
-  return { concept, word: concept.words[askIndex], shown, correctIndex: pos };
+  others.splice(pos, 0, answer);
+  return { mode: 'pick', obj, color, word, shown: others, correctIndex: pos };
 }
 
-/* ---------- 絵を作る ---------- */
-function renderItem(item, maxCount) {
-  // 画像があれば画像を使う
-  if (item.image) {
+/* ---------- 物の絵を作る ---------- */
+function renderObject(obj, color, len) {
+  if (obj.image) {
     const img = document.createElement('img');
-    img.className = 'pic';
-    img.src = item.image;
-    img.alt = item.alt || '';
+    img.className = 'obj pic';
+    img.src = obj.image;
+    img.alt = obj.name;
     img.draggable = false;
-    img.style.setProperty('--s', item.size ?? 0.9);
+    img.style.setProperty('--len', len);
     return img;
   }
   const el = document.createElement('div');
-  switch (item.type) {
-    case 'emoji':
-      el.className = 'emoji';
-      el.textContent = item.emoji;
-      el.style.setProperty('--s', item.size);
-      break;
-    case 'many': {
-      el.className = 'many';
-      // 選択肢どうしで絵の大きさをそろえる（いちばん多い数で決める）
-      const cols = Math.ceil(Math.sqrt(maxCount));
-      el.style.setProperty('--fs', Math.min(30, 66 / cols) + 'cqmin');
-      for (let i = 0; i < item.count; i++) {
-        const s = document.createElement('span');
-        s.textContent = item.emoji;
-        el.appendChild(s);
-      }
-      break;
-    }
-    case 'pencil':
-      el.className = 'pencil';
-      el.style.setProperty('--len', item.length);
-      el.style.setProperty('--c', item.color);
-      el.innerHTML = '<span class="eraser"></span><span class="band"></span><span class="body"></span><span class="tip"></span>';
-      break;
-    case 'area':
-      el.className = 'area';
-      el.style.setProperty('--w', item.w);
-      el.style.setProperty('--h', item.h);
-      el.style.setProperty('--c', item.color);
-      el.textContent = item.emoji || '';
-      break;
-  }
+  el.className = 'obj ' + obj.id;
+  el.setAttribute('role', 'img');
+  el.setAttribute('aria-label', obj.name);
+  el.style.setProperty('--len', len);
+  el.style.setProperty('--c', color);
+  obj.draw(el, color);
   return el;
 }
 
 /* ---------- 問題を表示 ---------- */
 function showQuestion(q) {
-  const lead = q.shown.length === 3 ? 'どれが いちばん ' : 'どっちが ';
-  questionEl.innerHTML = lead + '<span class="key">' + q.word + '</span>？';
+  if (q.mode === 'order') {
+    questionEl.innerHTML = '<span class="key">ながい</span> じゅんに タッチしよう';
+  } else {
+    const lead = q.shown.length === 2 ? 'どっちが ' : 'どれが いちばん ';
+    questionEl.innerHTML = lead + '<span class="key">' + q.word + '</span>？';
+  }
   progressEl.textContent = (solved + 1) + ' / ' + CONFIG.questionsPerGame;
-  const maxCount = Math.max(...q.shown.map(it => it.count || 0));
   choicesEl.style.setProperty('--n', q.shown.length);
   choicesEl.replaceChildren(...q.shown.map((item, i) => {
     const btn = document.createElement('button');
     btn.type = 'button';
-    btn.className = 'choice' + (q.concept.alignStart ? ' align-start' : '');
-    btn.appendChild(renderItem(item, maxCount));
+    btn.className = 'choice';
+    btn.appendChild(renderObject(q.obj, q.color, item.len));
     btn.addEventListener('click', () => onChoose(i));
     return btn;
   }));
+  if (q.mode === 'order') q.done.forEach((idx, k) => markDone(idx, k + 1));
   feedbackEl.replaceChildren();
+}
+
+function markDone(index, num) {
+  const btn = choicesEl.children[index];
+  btn.classList.add('is-done');
+  const b = document.createElement('span');
+  b.className = 'badge';
+  b.textContent = num;
+  btn.appendChild(b);
 }
 
 function nextQuestion() {
@@ -469,35 +444,54 @@ function showMark(kind) {
 /* ---------- タッチしたとき ---------- */
 function onChoose(index) {
   if (locked || !current) return;
-  lock();
   const btn = choicesEl.children[index];
 
-  if (index === current.correctIndex) {
-    // 正解：〇 ＋ ピンポーン → 次の問題（30問めなら おわり）
-    btn.classList.add('is-correct');
-    showMark('maru');
-    playPingPong();
-    solved++;
-    later(solved >= CONFIG.questionsPerGame ? showEnd : nextQuestion, CONFIG.correctWaitMs);
-  } else {
-    // 不正解：× のみ（音なし）→ 5秒クールタイム → 同じ問題をやり直し
-    btn.classList.add('is-wrong');
-    const mark = showMark('batsu');
-    later(() => mark.classList.add('fade'), CONFIG.batsuFadeMs);
-
-    cooldownEl.style.setProperty('--t', CONFIG.cooldownMs + 'ms');
-    cooldownEl.hidden = false;
-    cooldownEl.classList.remove('run');
-    void cooldownEl.offsetWidth;          // アニメーションをはじめから
-    cooldownEl.classList.add('run');
-
-    later(() => {
-      cooldownEl.hidden = true;
-      cooldownEl.classList.remove('run');
-      showQuestion(current);              // 同じ問題（同じ並び）を表示しなおす
-      unlock();
-    }, CONFIG.cooldownMs);
+  if (current.mode === 'order') {
+    if (current.done.includes(index)) return;          // もうタッチした物は何もしない
+    if (index === current.order[current.done.length]) {
+      current.done.push(index);
+      markDone(index, current.done.length);
+      if (current.done.length === current.shown.length) success(btn);
+      return;
+    }
+    wrong(btn);
+    return;
   }
+
+  if (index === current.correctIndex) success(btn);
+  else wrong(btn);
+}
+
+// 正解：〇 ＋ ピンポーン → 次の問題（さいごなら おわり）
+function success(btn) {
+  lock();
+  if (current.mode === 'pick') btn.classList.add('is-correct');
+  showMark('maru');
+  playPingPong();
+  solved++;
+  later(solved >= CONFIG.questionsPerGame ? showEnd : nextQuestion, CONFIG.correctWaitMs);
+}
+
+// 不正解：× のみ（音なし）→ 5秒クールタイム → 同じ問題をやり直し
+// （上級は、それまでに正しくタッチできた分はのこしたまま、つづきから）
+function wrong(btn) {
+  lock();
+  btn.classList.add('is-wrong');
+  const mark = showMark('batsu');
+  later(() => mark.classList.add('fade'), CONFIG.batsuFadeMs);
+
+  cooldownEl.style.setProperty('--t', CONFIG.cooldownMs + 'ms');
+  cooldownEl.hidden = false;
+  cooldownEl.classList.remove('run');
+  void cooldownEl.offsetWidth;          // アニメーションをはじめから
+  cooldownEl.classList.add('run');
+
+  later(() => {
+    cooldownEl.hidden = true;
+    cooldownEl.classList.remove('run');
+    showQuestion(current);              // 同じ問題（同じ並び）を表示しなおす
+    unlock();
+  }, CONFIG.cooldownMs);
 }
 
 /* =========================================================
@@ -509,7 +503,7 @@ function startGame(key) {
   clearTimers();
   level = LEVELS[key];
   level.key = key;
-  solved = 0; bag = []; lastConceptId = null;
+  solved = 0; bag = []; lastObjectId = null;
   cooldownEl.hidden = true;
   $('start').hidden = true;
   $('end').hidden = true;
