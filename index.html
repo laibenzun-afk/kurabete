@@ -149,6 +149,76 @@ button { font: inherit; color: inherit; }
   background: repeating-linear-gradient(to right, var(--c) 0 8cqh, #ffffff 8cqh 16cqh);
 }
 
+/* ものさし */
+.monosashi {
+  height: 34cqh; box-sizing: border-box; border: 2px solid #c9a93a; border-radius: 2cqh;
+  background:
+    repeating-linear-gradient(to right, #6b5a1e 0 0.7cqh, transparent 0.7cqh 30cqh) left 3cqh top 0 / 100% 55% no-repeat,
+    repeating-linear-gradient(to right, #6b5a1e 0 0.5cqh, transparent 0.5cqh 6cqh) left 3cqh top 0 / 100% 30% no-repeat,
+    var(--c);
+}
+
+/* クレヨン */
+.crayon { height: 36cqh; display: flex; }
+.crayon .body {
+  flex: 1; border-radius: 6cqh 0 0 6cqh;
+  background: linear-gradient(to bottom, var(--c) 0 22%, #ffffff70 22% 78%, var(--c) 78%), var(--c);
+}
+.crayon .tip {
+  width: 20cqh; flex: none; background: var(--c);
+  clip-path: polygon(0 0, 55% 18%, 100% 38%, 100% 62%, 55% 82%, 0 100%);
+}
+
+/* ベルト */
+.belt { height: 40cqh; display: flex; align-items: center; }
+.belt .buckle {
+  width: 22cqh; height: 40cqh; flex: none; box-sizing: border-box;
+  border: 4cqh solid #c9a227; border-radius: 4cqh;
+}
+.belt .band {
+  flex: 1; height: 22cqh; border-radius: 0 11cqh 11cqh 0; margin-left: -4cqh;
+  background:
+    radial-gradient(circle, #2b2118 0 2.4cqh, transparent 2.8cqh) right 9cqh center / 8cqh 100% no-repeat,
+    radial-gradient(circle, #2b2118 0 2.4cqh, transparent 2.8cqh) right 19cqh center / 8cqh 100% no-repeat,
+    radial-gradient(circle, #2b2118 0 2.4cqh, transparent 2.8cqh) right 29cqh center / 8cqh 100% no-repeat,
+    var(--c);
+}
+
+/* はぶらし */
+.haburashi { height: 36cqh; display: flex; align-items: flex-end; }
+.haburashi .handle { flex: 1; height: 12cqh; border-radius: 6cqh 0 0 6cqh; background: var(--c); }
+.haburashi .head {
+  width: 26cqh; height: 36cqh; flex: none; border-radius: 0 4cqh 4cqh 0;
+  background:
+    linear-gradient(to top, var(--c) 0 34%, transparent 34%),
+    repeating-linear-gradient(to right, #8ccbea 0 2cqh, #e6f5fc 2cqh 3.5cqh);
+}
+
+/* かさ（とじたかさ） */
+.kasa { height: 40cqh; display: flex; align-items: center; }
+.kasa .hook {
+  width: 12cqh; height: 26cqh; flex: none; box-sizing: border-box; align-self: flex-start; margin-top: 7cqh;
+  border: 4cqh solid #7a5230; border-right: 0; border-bottom: 0; border-radius: 13cqh 0 0 0;
+}
+.kasa .shaft { width: 6cqh; height: 5cqh; flex: none; background: #7a5230; margin-top: -11cqh; }
+.kasa .cloth {
+  flex: 1; height: 34cqh; background: var(--c);
+  clip-path: polygon(0 20%, 100% 46%, 100% 54%, 0 80%);
+}
+.kasa .point { width: 9cqh; height: 4cqh; flex: none; background: #8a94a0; border-radius: 0 2cqh 2cqh 0; }
+
+/* ねぎ */
+.negi { height: 24cqh; display: flex; align-items: center; }
+.negi .green {
+  flex: 3; height: 100%; background: linear-gradient(to right, #3f9b46, #7cc576);
+  clip-path: polygon(0 0, 100% 8%, 100% 92%, 0 100%, 7% 50%);
+}
+.negi .white { flex: 2; height: 84%; background: #eef2e4; border-right: 2px solid #d7dcc8; }
+.negi .root {
+  width: 8cqh; height: 70%; flex: none;
+  background: repeating-linear-gradient(to bottom, #d9c9a3 0 1.2cqh, transparent 1.2cqh 3cqh);
+}
+
 /* ---------- 〇 × フィードバック ---------- */
 #feedback {
   position: fixed; inset: 0; z-index: 10; pointer-events: none;
@@ -298,7 +368,19 @@ const OBJECTS = [
   { id: 'densha', name: 'でんしゃ', colors: ['#2e8b57', '#d9503f', '#3b7dd8'],
     draw(el) { el.innerHTML = '<span class="car"></span><span class="wheels"></span>'; } },
   { id: 'straw', name: 'ストロー', colors: ['#f28c8c', '#6fb3e8', '#7cc576'],
-    draw() {} }
+    draw() {} },
+  { id: 'monosashi', name: 'ものさし', colors: ['#f7e08a', '#cfe8f7'],
+    draw() {} },
+  { id: 'crayon', name: 'クレヨン', colors: ['#e05a47', '#3b7dd8', '#3f9b46', '#9b59b6'],
+    draw(el) { el.innerHTML = '<span class="body"></span><span class="tip"></span>'; } },
+  { id: 'belt', name: 'ベルト', colors: ['#8e5a2b', '#3a3a3a'],
+    draw(el) { el.innerHTML = '<span class="buckle"></span><span class="band"></span>'; } },
+  { id: 'haburashi', name: 'はぶらし', colors: ['#6fb3e8', '#f28c8c', '#7cc576'],
+    draw(el) { el.innerHTML = '<span class="handle"></span><span class="head"></span>'; } },
+  { id: 'kasa', name: 'かさ', colors: ['#e05a47', '#3b7dd8', '#f2c94c'],
+    draw(el) { el.innerHTML = '<span class="hook"></span><span class="shaft"></span><span class="cloth"></span><span class="point"></span>'; } },
+  { id: 'negi', name: 'ねぎ', colors: ['#3f9b46'],
+    draw(el) { el.innerHTML = '<span class="green"></span><span class="white"></span><span class="root"></span>'; } }
 ];
 
 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
