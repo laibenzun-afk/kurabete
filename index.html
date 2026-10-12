@@ -46,6 +46,7 @@ button { font: inherit; color: inherit; }
   text-wrap: balance;
 }
 #question .key { color: var(--key); }
+#question .nw { display: inline-block; white-space: nowrap; }
 #progress {
   color: var(--sub); font-size: clamp(14px, 2.6vmin, 24px);
   font-variant-numeric: tabular-nums; white-space: nowrap;
@@ -395,10 +396,10 @@ function renderObject(obj, color, len) {
 /* ---------- 問題を表示 ---------- */
 function showQuestion(q) {
   if (q.mode === 'order') {
-    questionEl.innerHTML = '<span class="key">ながい</span> じゅんに タッチしよう';
+    questionEl.innerHTML = '<span class="nw"><span class="key">ながい</span> じゅんに</span> <span class="nw">タッチしよう</span>';
   } else {
     const lead = q.shown.length === 2 ? 'どっちが ' : 'どれが いちばん ';
-    questionEl.innerHTML = lead + '<span class="key">' + q.word + '</span>？';
+    questionEl.innerHTML = lead + '<span class="nw"><span class="key">' + q.word + '</span>？</span>';
   }
   progressEl.textContent = (solved + 1) + ' / ' + CONFIG.questionsPerGame;
   choicesEl.style.setProperty('--n', q.shown.length);
